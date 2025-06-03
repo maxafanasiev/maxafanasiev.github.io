@@ -295,30 +295,49 @@
     };
 
     const fillSourcesInfo = () => {
-        tabs['sources-tab'].element.innerHTML = '';
-        tabs['sources-tab'].element.innerHTML = `
-          <h3>Social Media</h3>
-        `;
-        for (const source of SOURCES_DATA) {
-            const sourceElement = document.createElement("div");
-            sourceElement.classList.add("source");
-            const sourceIndicator = document.createElement("div");
-            sourceIndicator.classList.add("source-indicator");
+    tabs['sources-tab'].element.innerHTML = `
+      <h3>Social Media</h3>
+    `;
+
+    for (const source of SOURCES_DATA) {
+        const sourceElement = document.createElement("div");
+        sourceElement.classList.add("source");
+
+        const sourceIndicator = document.createElement("div");
+        sourceIndicator.classList.add("source-indicator");
+        sourceIndicator.classList.add(userData[source.key] ? "connected" : "not-connected");
+
+        const button = document.createElement("button");
+        button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
+        button.classList.add("source-button");
+
+        button.addEventListener("click", async () => {
             if (userData[source.key]) {
-                sourceIndicator.classList.add("connected");
+                try {
+                    const res = await fetch(`${BASE_URL}/${source.name.toLowerCase()}/disconnect`, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(USER_INFO_PAYLOAD)
+                    });
+                    if (res.status !== 204) throw new Error("Failed to disconnect");
+                    responseBox.textContent = `${source.name} disconnected.`;
+                    await fillUserInfo();
+                    fillSourcesInfo();
+                } catch (err) {
+                    responseBox.textContent = `Error: ${err.message}`;
+                }
             } else {
-                sourceIndicator.classList.add("not-connected");
-            }
-            const button = document.createElement("button");
-            button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
-            button.classList.add("source-button");
-            button.addEventListener("click", () => {
                 Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.name.toLowerCase()}?telegram_id=${telegram_id}`);
-            });
-            sourceElement.appendChild(button);
-            sourceElement.appendChild(sourceIndicator);
-            tabs['sources-tab'].element.appendChild(sourceElement);
-        }
+            }
+        });
+
+        sourceElement.appendChild(button);
+        sourceElement.appendChild(sourceIndicator);
+        tabs['sources-tab'].element.appendChild(sourceElement);
+    }
+};
     };
 
     const fillPlatformInfo = () => {
