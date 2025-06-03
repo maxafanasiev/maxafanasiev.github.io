@@ -276,9 +276,7 @@
                     headers: {
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                        id: telegram_id
-                    })
+                    body: JSON.stringify(USER_INFO_PAYLOAD)
                 })
                     .then((res) => {
                         if (!res.ok) throw new Error("Failed to delete user");
