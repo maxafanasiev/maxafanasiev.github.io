@@ -1,320 +1,277 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Telegram Mini App</title>
-    <meta charset="UTF-8"/>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        body {
-            font-family: sans-serif;
-            padding: 20px;
-        }
+  <title>Telegram Mini App</title>
+  <meta charset="UTF-8"/>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      padding: 20px;
+    }
 
-        p, h1, h2, h3, h4, h5, h6 {
-            margin: 0;
-            padding: 0;
-        }
+    .title {
+      margin-bottom: 20px;
+    }
 
-        .title {
-            margin-bottom: 20px;
-        }
+    .tabs {
+      overflow: hidden;
+      border: 1px solid #333;
+      background-color: #1e1e1e;
+      border-radius: 8px;
+    }
 
-        .user-info, .server-response {
-            background: #f3f3f3;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
+    .tab-button {
+      float: left;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      background-color: #1e1e1e;
+      color: #f0f0f0;
+      transition: 0.3s;
+      font-size: 17px;
+    }
 
-        .navigate-button {
-            margin-top: 20px;
-            display: block;
-            padding: 12px 20px;
-            background-color: #0088cc;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            text-align: center;
-            cursor: pointer;
-            text-decoration: none;
-            width: 100%;
-        }
+    .tab-button:hover {
+      background-color: #2a2a2a;
+    }
 
-        .tabs {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-        }
+    .tab-button.active {
+      background-color: #333;
+      font-weight: bold;
+    }
 
-        .tab-button {
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 14px 16px;
-            transition: 0.3s;
-            font-size: 17px;
-        }
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+      background-color: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+    }
 
-        .tab-button:hover {
-            background-color: #ddd;
-        }
+    .tab-content.active {
+      display: flex;
+    }
 
-        .tab-button.active {
-            background-color: #ccc;
-            color: white;
-        }
+    .navigate-button,
+    .source-button {
+      padding: 12px 20px;
+      background-color: #0077ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
 
-        .tab-content {
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 8px;
-        }
+    .navigate-button:hover,
+    .source-button:hover {
+      background-color: #005fcc;
+    }
 
-        .tab-content.active {
-            display: flex;
-        }
+    .server-response {
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
 
-        .loading {
-            text-align: center;
-            padding: 20px;
-        }
+    .source {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .source {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
+    .source-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
 
-        .source-button {
-            padding: 12px 20px;
-            background-color: #0088cc;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            text-align: center;
-            text-decoration: none;
-            width: 100%;
-        }
+    .connected {
+      background-color: #4caf50;
+    }
 
-        .source-indicator {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-        }
+    .not-connected {
+      background-color: #f44336;
+    }
 
-        .source-indicator.connected {
-            background-color: green;
-        }
-
-        .source-indicator.not-connected {
-            background-color: red;
-        }
-    </style>
+    .icon {
+      font-size: 20px;
+      margin-right: 10px;
+      width: 24px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-<h2 class="title" id="title">Telegram User Info</h2>
-
-<div class="tabs">
+  <h2 class="title" id="title">Telegram User Info</h2>
+  <div class="tabs">
     <button class="tab-button active" id="user-tab-button" onclick="openTab('user-tab')">User Info</button>
     <button class="tab-button" id="sources-tab-button" onclick="openTab('sources-tab')">Social Media</button>
     <button class="tab-button" id="platform-tab-button" onclick="openTab('platform-tab')">Platform</button>
-</div>
-
-<div id="user-tab" class="tab-content active">
-    <div class="loading">Loading...</div>
-</div>
-
-<div id="sources-tab" class="tab-content">
-    <div class="loading">Loading...</div>
-</div>
-
-<div id="platform-tab" class="tab-content">
-    <div class="loading">Loading...</div>
-</div>
-
-<pre class="server-response" id="server-response"></pre>
-
-<script>
+  </div>
+  <div id="user-tab" class="tab-content active"></div>
+  <div id="sources-tab" class="tab-content"></div>
+  <div id="platform-tab" class="tab-content"></div>
+  <pre class="server-response" id="server-response"></pre>
+  <script>
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
-
-    const user = Telegram.WebApp.initDataUnsafe.user || {};
-    const telegram_id = user.id;
 
     const BASE_URL = "https://readily-special-grouper.ngrok-free.app";
     const responseBox = document.getElementById("server-response");
 
+    const user = Telegram.WebApp.initDataUnsafe.user || {};
+    const telegram_id = user.id;
     const USER_INFO_PAYLOAD = {
-        id: telegram_id,
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        username: user.username || "",
-        language_code: user.language_code || ""
+      id: telegram_id,
+      first_name: user.first_name || "",
+      last_name: user.last_name || "",
+      username: user.username || "",
+      language_code: user.language_code || ""
     };
 
     const SOURCES_DATA = [
-        { key: "youtubeConnected", name: "YouTube" },
-        { key: "redditConnected", name: "Reddit" },
-        { key: "linkedinConnected", name: "LinkedIn" },
-        { key: "spotifyConnected", name: "Spotify" },
-        { key: "xConnected", name: "X" }
+      { key: "youtubeConnected", name: "YouTube", icon: "fab fa-youtube" },
+      { key: "redditConnected", name: "Reddit", icon: "fab fa-reddit" },
+      { key: "linkedinConnected", name: "LinkedIn", icon: "fab fa-linkedin" },
+      { key: "spotifyConnected", name: "Spotify", icon: "fab fa-spotify" },
+      { key: "xConnected", name: "X", icon: "fab fa-x-twitter" }
     ];
 
     let userData;
 
     const fetchUserData = async () => {
-        try {
-            const res = await fetch(`${BASE_URL}/user/me`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(USER_INFO_PAYLOAD)
-            });
-            return await res.json();
-        } catch (err) {
-            console.error("Error fetching user data:", err);
-            return null;
-        }
+      try {
+        const res = await fetch(`${BASE_URL}/user/me`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(USER_INFO_PAYLOAD)
+        });
+        return await res.json();
+      } catch (err) {
+        console.error("Error fetching user data:", err);
+        return null;
+      }
     };
 
     const fillUserInfo = async () => {
-        const data = await fetchUserData();
-        if (!data) {
-            responseBox.textContent = "Failed to load user info.";
-            tabs['user-tab'].element.textContent = "Failed to load user info.";
-            return;
-        }
+      const data = await fetchUserData();
+      if (!data) return;
+      userData = data;
+      tabs['user-tab'].element.innerHTML = `
+        <p><strong>Telegram ID:</strong> ${data.telegramId}</p>
+        <p><strong>Name:</strong> ${data.telegramFirstName} ${data.telegramLastName}</p>
+        <p><strong>Username:</strong> @${data.telegramUsername}</p>
+        <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
+        ${data.googleEmail ? `<p><strong>Google:</strong> ${data.googleEmail}</p>` : ""}
+        ${data.googlePicture ? `<img src="${data.googlePicture}" width="40" height="40"/>` : ""}
+        <button class="navigate-button" onclick="handleGoogleAuth()">
+          ${data.googleEmail ? "Disconnect Google" : "Connect Google"}
+        </button>
+        <button class="navigate-button" style="background:#cc0000" onclick="deleteUser()">Delete User</button>
+      `;
+    };
 
-        userData = data;
+    const handleGoogleAuth = () => {
+      if (userData.googleEmail) {
+        responseBox.textContent = "Need to implement disconnect logic.";
+      } else {
+        Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
+      }
+    };
 
-        tabs['user-tab'].element.innerHTML = `
-          <p><strong>Telegram ID:</strong> ${data.telegramId}</p>
-          <p><strong>First name:</strong> ${data.telegramFirstName}</p>
-          <p><strong>Last name:</strong> ${data.telegramLastName}</p>
-          <p><strong>Username:</strong> @${data.telegramUsername}</p>
-          <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
-          ${data.googleEmail ? `<p><strong>Google Email:</strong> ${data.googleEmail}</p>` : ""}
-          ${data.googlePicture ? `<img src="${data.googlePicture}" width="40" height="40" alt="Avatar"/>` : ""}
-          ${data.device ? `<p><strong>Device:</strong> ${data.device}</p>` : ""}
-          <p><strong>Youtube connected:</strong> ${data.youtubeConnected}</p>
-        `;
-
-        const googleButton = document.createElement("button");
-        googleButton.textContent = data.googleEmail ? "Disconnect Google" : "Connect Google";
-        googleButton.classList.add("navigate-button");
-        googleButton.onclick = () => {
-            if (data.googleEmail) {
-                responseBox.textContent = "Need to add disconnect logic";
-            } else {
-                Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
-            }
-        };
-        tabs['user-tab'].element.appendChild(googleButton);
-
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete User";
-        deleteButton.classList.add("navigate-button");
-        deleteButton.style.backgroundColor = "#cc0000";
-        deleteButton.onclick = () => {
-            if (confirm("Are you sure you want to delete your user data?")) {
-                fetch(`${BASE_URL}/user`, {
-                    method: "DELETE",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(USER_INFO_PAYLOAD)
-                })
-                    .then(res => {
-                        if (res.status !== 204) throw new Error("Failed to delete");
-                        Telegram.WebApp.close();
-                    })
-                    .catch(err => responseBox.textContent = err.message);
-            }
-        };
-        tabs['user-tab'].element.appendChild(deleteButton);
+    const deleteUser = () => {
+      if (!confirm("Delete your user data?")) return;
+      fetch(`${BASE_URL}/user`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(USER_INFO_PAYLOAD)
+      })
+        .then(res => res.status === 204 ? Telegram.WebApp.close() : Promise.reject("Failed"))
+        .catch(err => responseBox.textContent = err);
     };
 
     const fillSourcesInfo = () => {
-        tabs['sources-tab'].element.innerHTML = `<h3>Social Media</h3>`;
-
-        for (const source of SOURCES_DATA) {
-            const sourceElement = document.createElement("div");
-            sourceElement.classList.add("source");
-
-            const indicator = document.createElement("div");
-            indicator.className = "source-indicator " + (userData[source.key] ? "connected" : "not-connected");
-
-            const button = document.createElement("button");
-            button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
-            button.classList.add("source-button");
-            button.onclick = async () => {
-                if (userData[source.key]) {
-                    try {
-                        const res = await fetch(`${BASE_URL}/${source.name.toLowerCase()}/disconnect`, {
-                            method: "DELETE",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(USER_INFO_PAYLOAD)
-                        });
-                        if (res.status !== 204) throw new Error("Failed to disconnect");
-                        responseBox.textContent = `${source.name} disconnected`;
-                        await fillUserInfo();
-                        fillSourcesInfo();
-                    } catch (err) {
-                        responseBox.textContent = err.message;
-                    }
-                } else {
-                    Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.name.toLowerCase()}?telegram_id=${telegram_id}`);
-                }
-            };
-
-            sourceElement.appendChild(button);
-            sourceElement.appendChild(indicator);
-            tabs['sources-tab'].element.appendChild(sourceElement);
-        }
+      tabs['sources-tab'].element.innerHTML = "";
+      SOURCES_DATA.forEach(source => {
+        const connected = userData[source.key];
+        const wrapper = document.createElement("div");
+        wrapper.className = "source";
+        const icon = document.createElement("i");
+        icon.className = `icon ${source.icon}`;
+        const button = document.createElement("button");
+        button.className = "source-button";
+        button.textContent = connected ? `Disconnect ${source.name}` : `Connect ${source.name}`;
+        button.onclick = () => {
+          if (connected) {
+            fetch(`${BASE_URL}/${source.name.toLowerCase()}/disconnect`, {
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(USER_INFO_PAYLOAD)
+            }).then(res => {
+              if (res.status === 204) {
+                fillUserInfo().then(fillSourcesInfo);
+              }
+            });
+          } else {
+            Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.name.toLowerCase()}?telegram_id=${telegram_id}`);
+          }
+        };
+        const indicator = document.createElement("div");
+        indicator.className = `source-indicator ${connected ? "connected" : "not-connected"}`;
+        wrapper.append(icon, button, indicator);
+        tabs['sources-tab'].element.appendChild(wrapper);
+      });
     };
 
     const fillPlatformInfo = () => {
-        tabs['platform-tab'].element.innerHTML = `<div>Platform Data Will be Here</div>`;
+      tabs['platform-tab'].element.innerHTML = `<div>Platform Data Will be Here</div>`;
     };
 
     const tabs = {
-        'user-tab': {
-            element: document.getElementById("user-tab"),
-            button: document.getElementById("user-tab-button"),
-            title: "Telegram User Info",
-            fill: fillUserInfo
-        },
-        'sources-tab': {
-            element: document.getElementById("sources-tab"),
-            button: document.getElementById("sources-tab-button"),
-            title: "Social Media",
-            fill: fillSourcesInfo
-        },
-        'platform-tab': {
-            element: document.getElementById("platform-tab"),
-            button: document.getElementById("platform-tab-button"),
-            title: "Platform",
-            fill: fillPlatformInfo
-        }
+      'user-tab': {
+        element: document.getElementById("user-tab"),
+        button: document.getElementById("user-tab-button"),
+        title: "Telegram User Info",
+        fill: fillUserInfo
+      },
+      'sources-tab': {
+        element: document.getElementById("sources-tab"),
+        button: document.getElementById("sources-tab-button"),
+        title: "Social Media",
+        fill: fillSourcesInfo
+      },
+      'platform-tab': {
+        element: document.getElementById("platform-tab"),
+        button: document.getElementById("platform-tab-button"),
+        title: "Platform",
+        fill: fillPlatformInfo
+      }
     };
 
     let activeTab = tabs["user-tab"];
     activeTab.fill();
 
     const openTab = (tabId) => {
-        activeTab.element.classList.remove("active");
-        activeTab.button.classList.remove("active");
-        activeTab = tabs[tabId];
-        activeTab.element.classList.add("active");
-        activeTab.button.classList.add("active");
-        document.getElementById("title").textContent = activeTab.title;
-        activeTab.fill();
+      activeTab.element.classList.remove("active");
+      activeTab.button.classList.remove("active");
+      activeTab = tabs[tabId];
+      activeTab.element.classList.add("active");
+      activeTab.button.classList.add("active");
+      document.getElementById("title").textContent = activeTab.title;
+      activeTab.fill();
     };
-</script>
+  </script>
 </body>
 </html>
