@@ -128,9 +128,9 @@
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
 
-    const _user = Telegram.WebApp.initDataUnsafe.user || {};
+    const user = Telegram.WebApp.initDataUnsafe.user || {};
 
-    if (!_user.id) {
+    if (!user.id) {
         document.body.innerHTML = `
             <div style="
                 display: flex;
@@ -153,7 +153,6 @@
     const BASE_URL = "https://readily-special-grouper.ngrok-free.app";
     const responseBox = document.getElementById("server-response");
 
-    const user = Telegram.WebApp.initDataUnsafe.user || {};
     const telegram_id = user.id;
     const USER_INFO_PAYLOAD = {
       id: telegram_id,
