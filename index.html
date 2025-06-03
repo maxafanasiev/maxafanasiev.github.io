@@ -281,7 +281,7 @@
           button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
           button.classList.add("source-button");
           button.addEventListener("click", () => {
-            Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.key}?telegram_id=${telegram_id}`);
+            Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.name.lower}?telegram_id=${telegram_id}`);
           });
           sourceElement.appendChild(button);
           sourceElement.appendChild(sourceIndicator);
