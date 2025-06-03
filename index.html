@@ -143,8 +143,7 @@
       Telegram.WebApp.expand();
 
       const user = Telegram.WebApp.initDataUnsafe.user || {};
-      // TODO: remove mock ID
-      const telegram_id = user.id || '416437751';
+      const telegram_id = user.id;
 
       const BASE_URL = "https://readily-special-grouper.ngrok-free.app";
 
