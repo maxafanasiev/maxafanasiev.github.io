@@ -128,6 +128,28 @@
     Telegram.WebApp.ready();
     Telegram.WebApp.expand();
 
+    const _user = Telegram.WebApp.initDataUnsafe.user || {};
+
+    if (!_user.id) {
+        document.body.innerHTML = `
+            <div style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                background-color: #121212;
+                color: #fff;
+                font-family: sans-serif;
+                text-align: center;
+            ">
+                <h1 style="font-size: 48px; margin-bottom: 16px;">404</h1>
+                <p style="font-size: 18px;">Telegram user not found.<br>Please open this app through Telegram.</p>
+            </div>
+        `;
+        throw new Error("Telegram user not found");
+}
+
     const BASE_URL = "https://readily-special-grouper.ngrok-free.app";
     const responseBox = document.getElementById("server-response");
 
