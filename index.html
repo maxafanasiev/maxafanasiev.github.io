@@ -150,10 +150,7 @@
     const telegram_id = user.id;
 
     const BASE_URL = "https://readily-special-grouper.ngrok-free.app";
-
-    const INITIAL_TAB = "user-tab";
-
-    let userData;
+    const responseBox = document.getElementById("server-response");
 
     const USER_INFO_PAYLOAD = {
         id: telegram_id,
@@ -164,37 +161,20 @@
     };
 
     const SOURCES_DATA = [
-        {
-            key: "youtubeConnected",
-            name: "YouTube"
-        },
-        {
-            key: "redditConnected",
-            name: "Reddit"
-        },
-        {
-            key: "linkedinConnected",
-            name: "LinkedIn"
-        },
-        {
-            key: "spotifyConnected",
-            name: "Spotify"
-        },
-        {
-            key: "xConnected",
-            name: "X"
-        }
-    ]
+        { key: "youtubeConnected", name: "YouTube" },
+        { key: "redditConnected", name: "Reddit" },
+        { key: "linkedinConnected", name: "LinkedIn" },
+        { key: "spotifyConnected", name: "Spotify" },
+        { key: "xConnected", name: "X" }
+    ];
 
-    const responseBox = document.getElementById("server-response");
+    let userData;
 
     const fetchUserData = async () => {
         try {
             const res = await fetch(`${BASE_URL}/user/me`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(USER_INFO_PAYLOAD)
             });
             return await res.json();
@@ -202,15 +182,13 @@
             console.error("Error fetching user data:", err);
             return null;
         }
-    }
+    };
 
     const fillUserInfo = async () => {
         const data = await fetchUserData();
-
         if (!data) {
             responseBox.textContent = "Failed to load user info.";
             tabs['user-tab'].element.textContent = "Failed to load user info.";
-            console.error("Error sending user info:", err);
             return;
         }
 
@@ -222,128 +200,86 @@
           <p><strong>Last name:</strong> ${data.telegramLastName}</p>
           <p><strong>Username:</strong> @${data.telegramUsername}</p>
           <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
-      
           ${data.googleEmail ? `<p><strong>Google Email:</strong> ${data.googleEmail}</p>` : ""}
-          ${data.googleName ? `<p><strong>Google Name:</strong> ${data.googleName}</p>` : ""}
-          ${data.googlePicture ? `<p><strong>Google Picture:</strong> <img src="${data.googlePicture}" width="40" height="40" alt="Avatar"></p>` : ""}
-      
+          ${data.googlePicture ? `<img src="${data.googlePicture}" width="40" height="40" alt="Avatar"/>` : ""}
           ${data.device ? `<p><strong>Device:</strong> ${data.device}</p>` : ""}
-          ${data.os ? `<p><strong>OS:</strong> ${data.os}</p>` : ""}
-          ${data.browser ? `<p><strong>Browser:</strong> ${data.browser}</p>` : ""}
-      
-          ${data.geoIp ? `<p><strong>IP:</strong> ${data.geoIp}</p>` : ""}
-          ${data.geoCity ? `<p><strong>City:</strong> ${data.geoCity}</p>` : ""}
-          ${data.geoRegion ? `<p><strong>Region:</strong> ${data.geoRegion}</p>` : ""}
-          ${data.geoCountry ? `<p><strong>Country:</strong> ${data.geoCountry}</p>` : ""}
-          ${data.geoPostalCode ? `<p><strong>Postal Code:</strong> ${data.geoPostalCode}</p>` : ""}
-          ${data.geoLatitude ? `<p><strong>Latitude:</strong> ${data.geoLatitude}</p>` : ""}
-          ${data.geoLongitude ? `<p><strong>Longitude:</strong> ${data.geoLongitude}</p>` : ""}
-          ${data.geoTimezone ? `<p><strong>Timezone:</strong> ${data.geoTimezone}</p>` : ""}
-          ${data.geoCurrency ? `<p><strong>Currency:</strong> ${data.geoCurrency}</p>` : ""}
-      
           <p><strong>Youtube connected:</strong> ${data.youtubeConnected}</p>
-          <p><strong>Reddit connected:</strong> ${data.redditConnected}</p>
-          <p><strong>Linkedin connected:</strong> ${data.linkedinConnected}</p>
-          <p><strong>Spotify connected:</strong> ${data.spotifyConnected}</p>
-          <p><strong>X connected:</strong> ${data.xConnected}</p>
-      
-          <p><strong>Created at:</strong> ${data.createdAt}</p>
-          <p><strong>Updated at:</strong> ${data.updatedAt}</p>
-          `;
+        `;
 
         const googleButton = document.createElement("button");
         googleButton.textContent = data.googleEmail ? "Disconnect Google" : "Connect Google";
         googleButton.classList.add("navigate-button");
-        googleButton.addEventListener("click", () => {
+        googleButton.onclick = () => {
             if (data.googleEmail) {
-                // add disconnect logic
                 responseBox.textContent = "Need to add disconnect logic";
             } else {
                 Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
             }
-            fillUserInfo();
-        });
+        };
         tabs['user-tab'].element.appendChild(googleButton);
+
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete User";
         deleteButton.classList.add("navigate-button");
         deleteButton.style.backgroundColor = "#cc0000";
-
-        deleteButton.addEventListener("click", () => {
-            if (confirm("Are you sure you want to delete your user data? This action cannot be undone.")) {
+        deleteButton.onclick = () => {
+            if (confirm("Are you sure you want to delete your user data?")) {
                 fetch(`${BASE_URL}/user`, {
                     method: "DELETE",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(USER_INFO_PAYLOAD)
                 })
-                    .then((res) => {
-                        if (res.status !== 204) throw new Error("Failed to delete user");
-                        return res.json();
-                    })
-                    .then(() => {
+                    .then(res => {
+                        if (res.status !== 204) throw new Error("Failed to delete");
                         Telegram.WebApp.close();
                     })
-                    .catch((err) => {
-                        responseBox.textContent = "Error deleting user: " + err.message;
-                    });
+                    .catch(err => responseBox.textContent = err.message);
             }
-        });
-
+        };
         tabs['user-tab'].element.appendChild(deleteButton);
     };
 
     const fillSourcesInfo = () => {
-    tabs['sources-tab'].element.innerHTML = `
-      <h3>Social Media</h3>
-    `;
+        tabs['sources-tab'].element.innerHTML = `<h3>Social Media</h3>`;
 
-    for (const source of SOURCES_DATA) {
-        const sourceElement = document.createElement("div");
-        sourceElement.classList.add("source");
+        for (const source of SOURCES_DATA) {
+            const sourceElement = document.createElement("div");
+            sourceElement.classList.add("source");
 
-        const sourceIndicator = document.createElement("div");
-        sourceIndicator.classList.add("source-indicator");
-        sourceIndicator.classList.add(userData[source.key] ? "connected" : "not-connected");
+            const indicator = document.createElement("div");
+            indicator.className = "source-indicator " + (userData[source.key] ? "connected" : "not-connected");
 
-        const button = document.createElement("button");
-        button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
-        button.classList.add("source-button");
-
-        button.addEventListener("click", async () => {
-            if (userData[source.key]) {
-                try {
-                    const res = await fetch(`${BASE_URL}/${source.name.toLowerCase()}/disconnect`, {
-                        method: "DELETE",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify(USER_INFO_PAYLOAD)
-                    });
-                    if (res.status !== 204) throw new Error("Failed to disconnect");
-                    responseBox.textContent = `${source.name} disconnected.`;
-                    await fillUserInfo();
-                    fillSourcesInfo();
-                } catch (err) {
-                    responseBox.textContent = `Error: ${err.message}`;
+            const button = document.createElement("button");
+            button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
+            button.classList.add("source-button");
+            button.onclick = async () => {
+                if (userData[source.key]) {
+                    try {
+                        const res = await fetch(`${BASE_URL}/${source.name.toLowerCase()}/disconnect`, {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(USER_INFO_PAYLOAD)
+                        });
+                        if (res.status !== 204) throw new Error("Failed to disconnect");
+                        responseBox.textContent = `${source.name} disconnected`;
+                        await fillUserInfo();
+                        fillSourcesInfo();
+                    } catch (err) {
+                        responseBox.textContent = err.message;
+                    }
+                } else {
+                    Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.name.toLowerCase()}?telegram_id=${telegram_id}`);
                 }
-            } else {
-                Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.name.toLowerCase()}?telegram_id=${telegram_id}`);
-            }
-        });
+            };
 
-        sourceElement.appendChild(button);
-        sourceElement.appendChild(sourceIndicator);
-        tabs['sources-tab'].element.appendChild(sourceElement);
-    }
-};
+            sourceElement.appendChild(button);
+            sourceElement.appendChild(indicator);
+            tabs['sources-tab'].element.appendChild(sourceElement);
+        }
     };
 
     const fillPlatformInfo = () => {
-        tabs['platform-tab'].element.innerHTML = `
-          <div> Platform Data Will be Here </div>
-        `;
+        tabs['platform-tab'].element.innerHTML = `<div>Platform Data Will be Here</div>`;
     };
 
     const tabs = {
@@ -367,7 +303,7 @@
         }
     };
 
-    let activeTab = tabs[INITIAL_TAB];
+    let activeTab = tabs["user-tab"];
     activeTab.fill();
 
     const openTab = (tabId) => {
@@ -377,23 +313,8 @@
         activeTab.element.classList.add("active");
         activeTab.button.classList.add("active");
         document.getElementById("title").textContent = activeTab.title;
-
         activeTab.fill();
-
-        setInterval(() => {
-            if (activeTab && typeof activeTab.fill === "function") {
-                activeTab.fill();
-            }
-        }, 10000);
     };
 </script>
 </body>
 </html>
-
-<!-- document.getElementById("google-button").addEventListener("click", () => {
-  Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
-});
-
-document.getElementById("youtube-button").addEventListener("click", () => {
-  Telegram.WebApp.openLink(`${BASE_URL}/auth/youtube?telegram_id=${telegram_id}`);
-}); -->
