@@ -9,6 +9,13 @@
         font-family: sans-serif;
         padding: 20px;
       }
+      p, h1, h2, h3, h4, h5, h6 {
+        margin: 0;
+        padding: 0;
+      }
+      .title {
+        margin-bottom: 20px;
+      }
       .user-info, .server-response {
         background: #f3f3f3;
         padding: 10px;
@@ -29,24 +36,123 @@
         text-decoration: none;
         width: 100%;
       }
+
+      .tabs {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+      }
+      
+      .tab-button {
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+      }
+      
+      .tab-button:hover {
+        background-color: #ddd;
+      }
+      
+      .tab-button.active {
+        background-color: #ccc;
+        color: white;
+      }
+      
+      .tab-content {
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 8px;
+      }
+      
+      .tab-content.active {
+        display: flex;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+      }
+
+      .source {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .source-button {
+        padding: 12px 20px;
+        background-color: #0088cc;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        text-align: center;
+        text-decoration: none;
+        width: 100%;
+      }
+
+      .source-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+      }
+
+      .source-indicator.connected {
+        background-color: green;
+      }
+
+      .source-indicator.not-connected {
+        background-color: red;
+      }
     </style>
   </head>
   <body>
-    <h2>Telegram User Info</h2>
-    <div class="user-info" id="user-info">Loading...</div>
-    <pre class="server-response" id="server-response"></pre>
+    <h2 class="title" id="title">Telegram User Info</h2>
 
-    <button id="google-button" class="navigate-button">Enrich User Info with Google</button>
-    <button id="youtube-button" class="navigate-button">Connect YouTube</button>
+    <div class="tabs">
+      <button class="tab-button active" id="user-tab-button" onclick="openTab('user-tab')">User Info</button>
+      <button class="tab-button" id="sources-tab-button" onclick="openTab('sources-tab')">Social Media</button>
+      <button class="tab-button" id="platform-tab-button" onclick="openTab('platform-tab')">Platform</button>
+    </div>
+
+    <div id="user-tab" class="tab-content active">
+      <div class="loading">Loading...</div>
+    </div>
+    
+    <div id="sources-tab" class="tab-content">
+      <div class="loading">Loading...</div>
+    </div>
+    
+    <div id="platform-tab" class="tab-content">
+      <div class="loading">Loading...</div>
+    </div>
+
+    <pre class="server-response" id="server-response"></pre>
 
     <script>
       Telegram.WebApp.ready();
       Telegram.WebApp.expand();
 
       const user = Telegram.WebApp.initDataUnsafe.user || {};
-      const telegram_id = user.id;
+      // TODO: remove mock ID
+      const telegram_id = user.id || '416437751';
 
-      const payload = {
+      const BASE_URL = "https://readily-special-grouper.ngrok-free.app";
+
+      const INITIAL_TAB = "user-tab";
+
+      let userData;
+
+      const USER_INFO_PAYLOAD = {
         id: telegram_id,
         first_name: user.first_name || "",
         last_name: user.last_name || "",
@@ -54,68 +160,184 @@
         language_code: user.language_code || ""
       };
 
-      const infoBox = document.getElementById("user-info");
+      const SOURCES_DATA = [
+        {
+          key: "youtubeConnected",
+          name: "YouTube"
+        },
+        {
+          key: "redditConnected",
+          name: "Reddit"
+        },
+        {
+          key: "linkedinConnected",
+          name: "LinkedIn"
+        },
+        {
+          key: "spotifyConnected",
+          name: "Spotify"
+        },
+        {
+          key: "xConnected",
+          name: "X"
+        }
+      ]
+
       const responseBox = document.getElementById("server-response");
 
-      fetch("https://readily-special-grouper.ngrok-free.app/user/me", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          infoBox.innerHTML = `
-            <p><strong>Telegram ID:</strong> ${data.telegramId}</p>
-            <p><strong>First name:</strong> ${data.telegramFirstName}</p>
-            <p><strong>Last name:</strong> ${data.telegramLastName}</p>
-            <p><strong>Username:</strong> @${data.telegramUsername}</p>
-            <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
-        
-            ${data.googleEmail ? `<p><strong>Google Email:</strong> ${data.googleEmail}</p>` : ""}
-            ${data.googleName ? `<p><strong>Google Name:</strong> ${data.googleName}</p>` : ""}
-            ${data.googlePicture ? `<p><strong>Google Picture:</strong> <img src="${data.googlePicture}" width="40" height="40" alt="Avatar"></p>` : ""}
-        
-            ${data.device ? `<p><strong>Device:</strong> ${data.device}</p>` : ""}
-            ${data.os ? `<p><strong>OS:</strong> ${data.os}</p>` : ""}
-            ${data.browser ? `<p><strong>Browser:</strong> ${data.browser}</p>` : ""}
-        
-            ${data.geoIp ? `<p><strong>IP:</strong> ${data.geoIp}</p>` : ""}
-            ${data.geoCity ? `<p><strong>City:</strong> ${data.geoCity}</p>` : ""}
-            ${data.geoRegion ? `<p><strong>Region:</strong> ${data.geoRegion}</p>` : ""}
-            ${data.geoCountry ? `<p><strong>Country:</strong> ${data.geoCountry}</p>` : ""}
-            ${data.geoPostalCode ? `<p><strong>Postal Code:</strong> ${data.geoPostalCode}</p>` : ""}
-            ${data.geoLatitude ? `<p><strong>Latitude:</strong> ${data.geoLatitude}</p>` : ""}
-            ${data.geoLongitude ? `<p><strong>Longitude:</strong> ${data.geoLongitude}</p>` : ""}
-            ${data.geoTimezone ? `<p><strong>Timezone:</strong> ${data.geoTimezone}</p>` : ""}
-            ${data.geoCurrency ? `<p><strong>Currency:</strong> ${data.geoCurrency}</p>` : ""}
-        
-            <p><strong>Youtube connected:</strong> ${data.youtubeConnected}</p>
-            <p><strong>Reddit connected:</strong> ${data.redditConnected}</p>
-            <p><strong>Linkedin connected:</strong> ${data.linkedinConnected}</p>
-            <p><strong>Spotify connected:</strong> ${data.spotifyConnected}</p>
-            <p><strong>X connected:</strong> ${data.xConnected}</p>
-        
-            <p><strong>Created at:</strong> ${data.createdAt}</p>
-            <p><strong>Updated at:</strong> ${data.updatedAt}</p>
-          `;
-        })
-        .catch((err) => {
-          responseBox.textContent = "Error: " + err.message;
-          infoBox.textContent = "Failed to load user info.";
+      const fetchUserData = async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/user/me`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(USER_INFO_PAYLOAD)
+          });
+          return await res.json();
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+          return null;
+        }
+      }
+
+      const fillUserInfo = async () => {
+        const data = await fetchUserData();
+
+        if (!data) {
+          responseBox.textContent = "Failed to load user info.";
+          tabs['user-tab'].element.textContent = "Failed to load user info.";
           console.error("Error sending user info:", err);
-        });
+          return;
+        }
 
-      const baseUrl = "https://readily-special-grouper.ngrok-free.app/auth";
+        userData = data;
+        
+        tabs['user-tab'].element.innerHTML = `
+          <p><strong>Telegram ID:</strong> ${data.telegramId}</p>
+          <p><strong>First name:</strong> ${data.telegramFirstName}</p>
+          <p><strong>Last name:</strong> ${data.telegramLastName}</p>
+          <p><strong>Username:</strong> @${data.telegramUsername}</p>
+          <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
+      
+          ${data.googleEmail ? `<p><strong>Google Email:</strong> ${data.googleEmail}</p>` : ""}
+          ${data.googleName ? `<p><strong>Google Name:</strong> ${data.googleName}</p>` : ""}
+          ${data.googlePicture ? `<p><strong>Google Picture:</strong> <img src="${data.googlePicture}" width="40" height="40" alt="Avatar"></p>` : ""}
+      
+          ${data.device ? `<p><strong>Device:</strong> ${data.device}</p>` : ""}
+          ${data.os ? `<p><strong>OS:</strong> ${data.os}</p>` : ""}
+          ${data.browser ? `<p><strong>Browser:</strong> ${data.browser}</p>` : ""}
+      
+          ${data.geoIp ? `<p><strong>IP:</strong> ${data.geoIp}</p>` : ""}
+          ${data.geoCity ? `<p><strong>City:</strong> ${data.geoCity}</p>` : ""}
+          ${data.geoRegion ? `<p><strong>Region:</strong> ${data.geoRegion}</p>` : ""}
+          ${data.geoCountry ? `<p><strong>Country:</strong> ${data.geoCountry}</p>` : ""}
+          ${data.geoPostalCode ? `<p><strong>Postal Code:</strong> ${data.geoPostalCode}</p>` : ""}
+          ${data.geoLatitude ? `<p><strong>Latitude:</strong> ${data.geoLatitude}</p>` : ""}
+          ${data.geoLongitude ? `<p><strong>Longitude:</strong> ${data.geoLongitude}</p>` : ""}
+          ${data.geoTimezone ? `<p><strong>Timezone:</strong> ${data.geoTimezone}</p>` : ""}
+          ${data.geoCurrency ? `<p><strong>Currency:</strong> ${data.geoCurrency}</p>` : ""}
+      
+          <p><strong>Youtube connected:</strong> ${data.youtubeConnected}</p>
+          <p><strong>Reddit connected:</strong> ${data.redditConnected}</p>
+          <p><strong>Linkedin connected:</strong> ${data.linkedinConnected}</p>
+          <p><strong>Spotify connected:</strong> ${data.spotifyConnected}</p>
+          <p><strong>X connected:</strong> ${data.xConnected}</p>
+      
+          <p><strong>Created at:</strong> ${data.createdAt}</p>
+          <p><strong>Updated at:</strong> ${data.updatedAt}</p>
+          `;
 
-      document.getElementById("google-button").addEventListener("click", () => {
-        Telegram.WebApp.openLink(`${baseUrl}/google?telegram_id=${telegram_id}`);
-      });
+          const googleButton = document.createElement("button");
+          googleButton.textContent = data.googleEmail ? "Disconnect Google" : "Connect Google";
+          googleButton.classList.add("navigate-button");
+          googleButton.addEventListener("click", () => {
+            if (data.googleEmail) {
+              // add disconnect logic
+              responseBox.textContent = "Need to add disconnect logic";
+            } else {
+              Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
+            }
+            fillUserInfo();
+          });
+          tabs['user-tab'].element.appendChild(googleButton);
+        };
 
-      document.getElementById("youtube-button").addEventListener("click", () => {
-        Telegram.WebApp.openLink(`${baseUrl}/youtube?telegram_id=${telegram_id}`);
-      });
+      const fillSourcesInfo = () => {
+        tabs['sources-tab'].element.innerHTML = '';
+        tabs['sources-tab'].element.innerHTML = `
+          <h3>Social Media</h3>
+        `;
+        for (const source of SOURCES_DATA) {
+          const sourceElement = document.createElement("div");
+          sourceElement.classList.add("source");
+          const sourceIndicator = document.createElement("div");
+          sourceIndicator.classList.add("source-indicator");
+          if (userData[source.key]) {
+            sourceIndicator.classList.add("connected");
+          } else {
+            sourceIndicator.classList.add("not-connected");
+          }
+          const button = document.createElement("button");
+          button.textContent = userData[source.key] ? `Disconnect ${source.name}` : `Connect ${source.name}`;
+          button.classList.add("source-button");
+          button.addEventListener("click", () => {
+            Telegram.WebApp.openLink(`${BASE_URL}/auth/${source.key}?telegram_id=${telegram_id}`);
+          });
+          sourceElement.appendChild(button);
+          sourceElement.appendChild(sourceIndicator);
+          tabs['sources-tab'].element.appendChild(sourceElement);
+        }
+      };
+
+      const fillPlatformInfo = () => {
+        tabs['platform-tab'].element.innerHTML = `
+          <div> Platform Data Will be Here </div>
+        `;
+      };
+
+      const tabs = {
+        'user-tab': {
+          element: document.getElementById("user-tab"),
+          button: document.getElementById("user-tab-button"),
+          title: "Telegram User Info",
+          fill: fillUserInfo
+        },
+        'sources-tab': {
+          element: document.getElementById("sources-tab"),
+          button: document.getElementById("sources-tab-button"),
+          title: "Social Media",
+          fill: fillSourcesInfo
+        },
+        'platform-tab': {
+          element: document.getElementById("platform-tab"),
+          button: document.getElementById("platform-tab-button"),
+          title: "Platform",
+          fill: fillPlatformInfo
+        }
+      };
+
+      let activeTab = tabs[INITIAL_TAB];
+      activeTab.fill();
+
+      const openTab = (tabId) => {
+        activeTab.element.classList.remove("active");
+        activeTab.button.classList.remove("active");
+        activeTab = tabs[tabId];
+        activeTab.element.classList.add("active");
+        activeTab.button.classList.add("active");
+        document.getElementById("title").textContent = activeTab.title;
+
+        activeTab.fill();
+      };    
     </script>
   </body>
 </html>
+
+<!-- document.getElementById("google-button").addEventListener("click", () => {
+  Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
+});
+
+document.getElementById("youtube-button").addEventListener("click", () => {
+  Telegram.WebApp.openLink(`${BASE_URL}/auth/youtube?telegram_id=${telegram_id}`);
+}); -->
