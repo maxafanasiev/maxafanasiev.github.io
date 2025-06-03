@@ -170,21 +170,35 @@
       if (!data) return;
       userData = data;
       tabs['user-tab'].element.innerHTML = `
-        <p><strong>Telegram ID:</strong> ${data.telegramId}</p>
-        <p><strong>Name:</strong> ${data.telegramFirstName} ${data.telegramLastName}</p>
-        <p><strong>Username:</strong> @${data.telegramUsername}</p>
-        <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
-        ${data.googleEmail ? `<p><strong>Google:</strong> ${data.googleEmail}</p>` : ""}
-        ${data.googlePicture ? `<img src="${data.googlePicture}" width="40" height="40"/>` : ""}
-        <button class="navigate-button" onclick="handleGoogleAuth()">
-          ${data.googleEmail ? "Disconnect Google" : "Connect Google"}
-        </button>
-        <button class="navigate-button" style="background:#cc0000" onclick="deleteUser()">Delete User</button>
-      `;
+         ${data.googlePicture ? `<img src="${data.googlePicture}" width="40" height="40"/>` : ""}
+         <p><strong>Telegram ID:</strong> ${data.telegramId}</p>
+         <p><strong>Name:</strong> ${data.telegramFirstName} ${data.telegramLastName}</p>
+         <p><strong>Username:</strong> @${data.telegramUsername}</p>
+         <p><strong>Language:</strong> ${data.telegramLanguageCode}</p>
+         ${data.googleSub ? `<p><strong>Google SUB:</strong> ${data.googleSub}</p>` : ""}
+         ${data.googleEmail ? `<p><strong>Google Email:</strong> ${data.googleEmail}</p>` : ""}
+         ${data.googleName ? `<p><strong>Google Name:</strong> ${data.googleName}</p>` : ""}
+          ${data.device ? `<p><strong>Device:</strong> ${data.device}</p>` : ""}
+          ${data.os ? `<p><strong>OS:</strong> ${data.os}</p>` : ""}
+          ${data.browser ? `<p><strong>Browser:</strong> ${data.browser}</p>` : ""}
+          ${data.geoIp ? `<p><strong>IP:</strong> ${data.geoIp}</p>` : ""}
+          ${data.geoCity ? `<p><strong>City:</strong> ${data.geoCity}</p>` : ""}
+          ${data.geoRegion ? `<p><strong>Region:</strong> ${data.geoRegion}</p>` : ""}
+          ${data.geoCountry ? `<p><strong>Country:</strong> ${data.geoCountry}</p>` : ""}
+          ${data.geoPostalCode ? `<p><strong>Postal Code:</strong> ${data.geoPostalCode}</p>` : ""}
+          ${data.geoLatitude ? `<p><strong>Latitude:</strong> ${data.geoLatitude}</p>` : ""}
+          ${data.geoLongitude ? `<p><strong>Longitude:</strong> ${data.geoLongitude}</p>` : ""}
+          ${data.geoTimezone ? `<p><strong>Timezone:</strong> ${data.geoTimezone}</p>` : ""}
+          ${data.geoCurrency ? `<p><strong>Currency:</strong> ${data.geoCurrency}</p>` : ""}
+         <button class="navigate-button" onclick="handleGoogleAuth()">
+           ${data.googleEmail ? "Disconnect Google" : "Connect Google"}
+         </button>
+         <button class="navigate-button" style="background:#cc0000" onclick="deleteUser()">Delete User</button>
+       `;
     };
 
     const handleGoogleAuth = () => {
-      if (userData.googleEmail) {
+      if (userData.googleSub) {
         responseBox.textContent = "Need to implement disconnect logic.";
       } else {
         Telegram.WebApp.openLink(`${BASE_URL}/auth/google?telegram_id=${telegram_id}`);
@@ -195,11 +209,11 @@
       if (!confirm("Delete your user data?")) return;
       fetch(`${BASE_URL}/user`, {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(USER_INFO_PAYLOAD)
       })
-        .then(res => res.status === 204 ? Telegram.WebApp.close() : Promise.reject("Failed"))
-        .catch(err => responseBox.textContent = err);
+              .then(res => res.status === 204 ? Telegram.WebApp.close() : Promise.reject("Failed"))
+              .catch(err => responseBox.textContent = err);
     };
 
     const fillSourcesInfo = () => {
@@ -217,7 +231,7 @@
           if (connected) {
             fetch(`${BASE_URL}/${source.name.toLowerCase()}/disconnect`, {
               method: "DELETE",
-              headers: { "Content-Type": "application/json" },
+              headers: {"Content-Type": "application/json"},
               body: JSON.stringify(USER_INFO_PAYLOAD)
             }).then(res => {
               if (res.status === 204) {
