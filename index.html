@@ -211,9 +211,11 @@
           ${data.geoLongitude ? `<p><strong>Longitude:</strong> ${data.geoLongitude}</p>` : ""}
           ${data.geoTimezone ? `<p><strong>Timezone:</strong> ${data.geoTimezone}</p>` : ""}
           ${data.geoCurrency ? `<p><strong>Currency:</strong> ${data.geoCurrency}</p>` : ""}
-         <button class="navigate-button" onclick="handleGoogleAuth()">
-           ${data.googleEmail ? "Disconnect Google" : "Connect Google"}
-         </button>
+          ${!data.googleSub ? `
+            <button class="navigate-button" onclick="handleGoogleAuth()">
+              Connect Google
+            </button>
+          ` : ""}
          <button class="navigate-button" style="background:#cc0000" onclick="deleteUser()">Delete User</button>
        `;
     };
