@@ -350,11 +350,11 @@
 
         fetchButton.onclick = async () => {
             const platform = platformSelect.value;
-            const type = dataTypeSelect.value;
+            const data_type = dataTypeSelect.value;
             try {
                 const queryParams = new URLSearchParams({
                     ...USER_INFO_PAYLOAD,
-                    type
+                    data_type
                 }).toString();
 
                 const res = await fetch(`${BASE_URL}/data/${platform}?${queryParams}`, {
