@@ -352,16 +352,14 @@
             const platform = platformSelect.value;
             const data_type = dataTypeSelect.value;
             try {
-                const queryParams = new URLSearchParams({
-                    ...USER_INFO_PAYLOAD,
-                    data_type
-                }).toString();
-
-                const res = await fetch(`${BASE_URL}/data/${platform}?${queryParams}`, {
-                    method: "GET",
-                    headers: {"Content-Type": "application/json"}
+                const res = await fetch(`${BASE_URL}/data/${platform}`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        ...USER_INFO_PAYLOAD,
+                        data_type
+                    })
                 });
-
                 const json = await res.json();
                 output.textContent = JSON.stringify(json, null, 2);
             } catch (err) {
