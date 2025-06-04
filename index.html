@@ -291,10 +291,6 @@
         });
     };
 
-    const fillPlatformInfo = () => {
-        tabs['platform-tab'].element.innerHTML = `<div>Platform Data Will be Here</div>`;
-    };
-
     const tabs = {
         'user-tab': {
             element: document.getElementById("user-tab"),
@@ -328,6 +324,88 @@
         document.getElementById("title").textContent = activeTab.title;
         activeTab.fill();
     };
+    const PLATFORM_OPTIONS = [
+    {
+        platform: "YouTube",
+        value: "youtube",
+        types: [
+            { label: "Liked Videos", value: "yt_liked_videos" },
+            { label: "Subscriptions", value: "yt_subscriptions" }
+        ]
+    }
+];
+
+const fillPlatformInfo = () => {
+    const container = tabs['platform-tab'].element;
+    container.innerHTML = "";
+
+    const platformSelect = document.createElement("select");
+    platformSelect.style.padding = "10px";
+    platformSelect.style.borderRadius = "8px";
+    platformSelect.style.marginBottom = "10px";
+    platformSelect.style.backgroundColor = "#2a2a2a";
+    platformSelect.style.color = "#fff";
+
+    PLATFORM_OPTIONS.forEach(p => {
+        const option = document.createElement("option");
+        option.value = p.value;
+        option.textContent = p.platform;
+        platformSelect.appendChild(option);
+    });
+
+    const dataTypeSelect = document.createElement("select");
+    dataTypeSelect.style.padding = "10px";
+    dataTypeSelect.style.borderRadius = "8px";
+    dataTypeSelect.style.marginBottom = "10px";
+    dataTypeSelect.style.backgroundColor = "#2a2a2a";
+    dataTypeSelect.style.color = "#fff";
+
+    const updateDataTypes = () => {
+        const selectedPlatform = platformSelect.value;
+        const platform = PLATFORM_OPTIONS.find(p => p.value === selectedPlatform);
+        dataTypeSelect.innerHTML = "";
+        platform.types.forEach(t => {
+            const option = document.createElement("option");
+            option.value = t.value;
+            option.textContent = t.label;
+            dataTypeSelect.appendChild(option);
+        });
+    };
+
+    platformSelect.addEventListener("change", updateDataTypes);
+    updateDataTypes();
+
+    const fetchButton = document.createElement("button");
+    fetchButton.className = "navigate-button";
+    fetchButton.textContent = "Fetch Data";
+
+    const output = document.createElement("div");
+    output.className = "server-response";
+
+    fetchButton.onclick = async () => {
+        const platform = platformSelect.value;
+        const type = dataTypeSelect.value;
+        try {
+            const res = await fetch(`${BASE_URL}/data/${platform}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ...USER_INFO_PAYLOAD,
+                    type
+                })
+            });
+            const json = await res.json();
+            output.textContent = JSON.stringify(json, null, 2);
+        } catch (err) {
+            output.textContent = `Error: ${err.message}`;
+        }
+    };
+
+    container.appendChild(platformSelect);
+    container.appendChild(dataTypeSelect);
+    container.appendChild(fetchButton);
+    container.appendChild(output);
+};
 </script>
 </body>
 </html>
