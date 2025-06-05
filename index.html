@@ -352,6 +352,8 @@
             const platform = platformSelect.value;
             const data_type = dataTypeSelect.value;
 
+            output.innerHTML = ""; // очищаем вывод
+
             try {
                 const queryParams = new URLSearchParams({
                     ...USER_INFO_PAYLOAD,
@@ -365,8 +367,45 @@
                     }
                 });
 
-                const json = await res.json();
-                output.textContent = JSON.stringify(json, null, 2);
+                const result = await res.json();
+
+                if (!Array.isArray(result)) {
+                    output.textContent = "Unexpected response format";
+                    return;
+                }
+
+                result.forEach(item => {
+                    const card = document.createElement("div");
+                    card.style.border = "1px solid #444";
+                    card.style.borderRadius = "10px";
+                    card.style.padding = "10px";
+                    card.style.marginBottom = "10px";
+                    card.style.backgroundColor = "#1e1e1e";
+                    card.style.color = "#fff";
+
+                    if (data_type === "yt_liked_videos") {
+                        card.innerHTML = `
+                    <strong>${item.title}</strong><br>
+                    <em>${item.channelTitle}</em><br>
+                    <small>${new Date(item.videoPublishedAt).toLocaleString()}</small><br>
+                    <p>${item.description}</p>
+                    <img src="${item.thumbnailUrl}" alt="thumbnail" style="width:100%; max-width:400px; margin-top:5px; border-radius: 8px;">
+                `;
+                    } else if (data_type === "yt_subscriptions") {
+                        card.innerHTML = `
+                    <strong>${item.title}</strong><br>
+                    <em>${item.channelId}</em><br>
+                    <small>Subscribed: ${new Date(item.subscribedAt).toLocaleString()}</small><br>
+                    <p>${item.description}</p>
+                    <img src="${item.thumbnailUrl}" alt="thumbnail" style="width:100%; max-width:400px; margin-top:5px; border-radius: 8px;">
+                `;
+                    } else {
+                        card.textContent = JSON.stringify(item, null, 2); // fallback
+                    }
+
+                    output.appendChild(card);
+                });
+
             } catch (err) {
                 output.textContent = `Error: ${err.message}`;
             }
