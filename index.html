@@ -343,7 +343,7 @@
 
         const fetchButton = document.createElement("button");
         fetchButton.className = "navigate-button";
-        fetchButton.textContent = "Fetch Data";
+        fetchButton.textContent = "Get Data";
 
         const output = document.createElement("div");
         output.className = "server-response";
@@ -351,6 +351,7 @@
         fetchButton.onclick = async () => {
             const platform = platformSelect.value;
             const data_type = dataTypeSelect.value;
+            const telegram_id = USER_INFO_PAYLOAD.id;
 
             try {
                 const queryParams = new URLSearchParams({
@@ -360,7 +361,7 @@
 
                 const res = await fetch(`${BASE_URL}/data/${platform}?${queryParams}`, {
                     method: "GET",
-                    // headers: {"Content-Type": "application/json"}
+                    headers: {"Content-Type": "application/json"}
                 });
 
                 const json = await res.json();
