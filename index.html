@@ -351,17 +351,18 @@
         fetchButton.onclick = async () => {
             const platform = platformSelect.value;
             const data_type = dataTypeSelect.value;
-            const telegram_id = USER_INFO_PAYLOAD.id;
 
             try {
                 const queryParams = new URLSearchParams({
-                    telegram_id,
+                    ...USER_INFO_PAYLOAD,
                     data_type
                 }).toString();
 
                 const res = await fetch(`${BASE_URL}/data/${platform}?${queryParams}`, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"}
+                    method: "GET",
+                    headers: {
+                        "ngrok-skip-browser-warning": "69420"
+                    }
                 });
 
                 const json = await res.json();
