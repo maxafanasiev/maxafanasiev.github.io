@@ -385,19 +385,19 @@
 
                     if (data_type === "yt_liked_videos") {
                         card.innerHTML = `
+                    <img src="${item.thumbnailUrl}" alt="thumbnail" style="width:100%; max-width:200px; margin-top:5px; border-radius: 8px;">
                     <strong>${item.title}</strong><br>
                     <em>${item.channelTitle}</em><br>
                     <small>${new Date(item.videoPublishedAt).toLocaleString()}</small><br>
                     <p>${item.description}</p>
-                    <img src="${item.thumbnailUrl}" alt="thumbnail" style="width:100%; max-width:400px; margin-top:5px; border-radius: 8px;">
                 `;
                     } else if (data_type === "yt_subscriptions") {
                         card.innerHTML = `
+                    <img src="${item.thumbnailUrl}" alt="thumbnail" style="width:100%; max-width:200px; margin-top:5px; border-radius: 8px;">
                     <strong>${item.title}</strong><br>
                     <em>${item.channelId}</em><br>
                     <small>Subscribed: ${new Date(item.subscribedAt).toLocaleString()}</small><br>
                     <p>${item.description}</p>
-                    <img src="${item.thumbnailUrl}" alt="thumbnail" style="width:100%; max-width:400px; margin-top:5px; border-radius: 8px;">
                 `;
                     } else {
                         card.textContent = JSON.stringify(item, null, 2); // fallback
