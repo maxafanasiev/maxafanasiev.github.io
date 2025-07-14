@@ -1,6 +1,6 @@
 // config/api.js
 export const API_CONFIG = {
-    BASE_URL: "https://maxafanasiev.github.io",
+    BASE_URL: "https://readily-special-grouper.ngrok-free.app",
     SKIP_BROWSER_WARNING: "69420"
 };
 
