@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои Каналы</title>
@@ -451,12 +450,15 @@
 
         async function loadChannels() {
             try {
+                console.log('[loadChannels] Начинаем загрузку каналов...');
                 authSection.style.display = 'none';
                 emptySection.style.display = 'none';
                 channelsSection.style.display = 'none';
                 loadingSection.style.display = 'block';
 
+                console.log('[loadChannels] Вызываем apiCall("/channels")...');
                 const channels = await apiCall('/channels');
+                console.log('[loadChannels] Получено каналов:', channels.length);
 
                 loadingSection.style.display = 'none';
 
