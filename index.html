@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои Каналы</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: var(--tg-theme-hint-color, #999);
+            font-size: 14px;
+        }
+
+        .btn {
+            background: var(--tg-theme-button-color, #3390ec);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 16px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--tg-theme-bg-color, #ffffff);
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--tg-theme-hint-color, #ddd);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--tg-theme-hint-color, #ddd);
+            border-top-color: var(--tg-theme-button-color, #3390ec);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .channels-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .channel-item {
+            background: var(--tg-theme-secondary-bg-color, #f7f7f7);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .channel-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color, #3390ec);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .channel-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .channel-title {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .channel-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .channel-username {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .error {
+            background: #ff4444;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Мои Каналы</h1>
+            <p>Управление вашими Telegram каналами</p>
+        </div>
+
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <div id="auth-section">
+            <button id="connect-btn" class="btn">
+                📱 Подключить каналы
+            </button>
+        </div>
+
+        <div id="loading-section" class="loading" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p>Загрузка каналов...</p>
+        </div>
+
+        <div id="channels-section" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h2 style="font-size: 18px;">Ваши каналы</h2>
+                <button id="refresh-btn" class="btn-secondary" style="width: auto; padding: 8px 16px; font-size: 14px;">
+                    🔄 Обновить
+                </button>
+            </div>
+            <div id="channels-list" class="channels-list"></div>
+            <button id="disconnect-btn" class="btn btn-secondary" style="margin-top: 16px;">
+                Отключить доступ
+            </button>
+        </div>
+
+        <div id="empty-section" class="empty-state" style="display: none;">
+            <div class="empty-state-icon">📢</div>
+            <p>У вас пока нет каналов</p>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ввода телефона -->
+    <div id="phone-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Введите номер телефона</h3>
+            <div class="input-group">
+                <label>Номер в формате +7XXXXXXXXXX</label>
+                <input type="tel" id="phone-input" placeholder="+7">
+            </div>
+            <button id="send-code-btn" class="btn">Отправить код</button>
+            <button id="cancel-phone-btn" class="btn btn-secondary">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно для ввода кода -->
+    <div id="code-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-title">Введите код из Telegram</h3>
+            <div class="input-group">
+                <label>Код подтверждения</label>
+                <input type="text" id="code-input" placeholder="12345" maxlength="5">
+            </div>
+            <div id="password-group" class="input-group" style="display: none;">
+                <label>2FA пароль</label>
+                <input type="password" id="password-input" placeholder="Пароль">
+            </div>
+            <button id="verify-code-btn" class="btn">Подтвердить</button>
+            <button id="cancel-code-btn" class="btn btn-secondary">Отмена</button>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+
+        const API_URL = 'https://quickly-pretty-pangolin.ngrok-free.app/api'; // Замените на ваш URL
+        const user = tg.initDataUnsafe.user;
+
+        let currentAuthToken = null;
+
+        // Elements
+        const connectBtn = document.getElementById('connect-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const disconnectBtn = document.getElementById('disconnect-btn');
+        const authSection = document.getElementById('auth-section');
+        const loadingSection = document.getElementById('loading-section');
+        const channelsSection = document.getElementById('channels-section');
+        const emptySection = document.getElementById('empty-section');
+        const channelsList = document.getElementById('channels-list');
+        const errorMessage = document.getElementById('error-message');
+
+        // Modals
+        const phoneModal = document.getElementById('phone-modal');
+        const codeModal = document.getElementById('code-modal');
+        const phoneInput = document.getElementById('phone-input');
+        const codeInput = document.getElementById('code-input');
+        const passwordInput = document.getElementById('password-input');
+        const passwordGroup = document.getElementById('password-group');
+
+        // Event listeners
+        connectBtn.addEventListener('click', startAuth);
+        refreshBtn.addEventListener('click', loadChannels);
+        disconnectBtn.addEventListener('click', disconnectAccess);
+        document.getElementById('send-code-btn').addEventListener('click', sendCode);
+        document.getElementById('verify-code-btn').addEventListener('click', verifyCode);
+        document.getElementById('cancel-phone-btn').addEventListener('click', () => closeModal(phoneModal));
+        document.getElementById('cancel-code-btn').addEventListener('click', () => closeModal(codeModal));
+
+        // Functions
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_URL}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Telegram-Init-Data': tg.initData,
+                        ...options.headers
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Ошибка запроса');
+                }
+
+                return await response.json();
+            } catch (error) {
+                showError(error.message);
+                throw error;
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function openModal(modal) {
+            modal.classList.add('active');
+        }
+
+        function closeModal(modal) {
+            modal.classList.remove('active');
+        }
+
+        async function startAuth() {
+            try {
+                connectBtn.disabled = true;
+
+                const data = await apiCall('/auth/init', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        telegram_user_id: user.id,
+                        init_data: tg.initData
+                    })
+                });
+
+                currentAuthToken = data.auth_token;
+
+                // Показываем модальное окно для ввода телефона
+                openModal(phoneModal);
+
+            } catch (error) {
+                connectBtn.disabled = false;
+            }
+        }
+
+        async function sendCode() {
+            const phone = phoneInput.value.trim();
+
+            if (!phone || phone.length < 10) {
+                showError('Введите корректный номер телефона');
+                return;
+            }
+
+            try {
+                document.getElementById('send-code-btn').disabled = true;
+
+                await apiCall('/auth/send-code', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        auth_token: currentAuthToken,
+                        phone: phone
+                    })
+                });
+
+                closeModal(phoneModal);
+                openModal(codeModal);
+                codeInput.focus();
+
+            } catch (error) {
+                document.getElementById('send-code-btn').disabled = false;
+            }
+        }
+
+        async function verifyCode() {
+            const code = codeInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!code || code.length < 5) {
+                showError('Введите код из Telegram');
+                return;
+            }
+
+            try {
+                document.getElementById('verify-code-btn').disabled = true;
+
+                const result = await apiCall('/auth/verify-code', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        auth_token: currentAuthToken,
+                        code: code,
+                        password: password || null
+                    })
+                });
+
+                if (result.status === 'password_required') {
+                    passwordGroup.style.display = 'block';
+                    passwordInput.focus();
+                    document.getElementById('verify-code-btn').disabled = false;
+                    return;
+                }
+
+                if (result.status === 'authorized') {
+                    closeModal(codeModal);
+                    await loadChannels();
+                }
+
+            } catch (error) {
+                document.getElementById('verify-code-btn').disabled = false;
+            }
+        }
+
+        async function loadChannels() {
+            try {
+                authSection.style.display = 'none';
+                emptySection.style.display = 'none';
+                channelsSection.style.display = 'none';
+                loadingSection.style.display = 'block';
+
+                const channels = await apiCall('/channels');
+
+                loadingSection.style.display = 'none';
+
+                if (channels.length === 0) {
+                    emptySection.style.display = 'block';
+                } else {
+                    displayChannels(channels);
+                    channelsSection.style.display = 'block';
+                }
+
+            } catch (error) {
+                loadingSection.style.display = 'none';
+                authSection.style.display = 'block';
+            }
+        }
+
+        function displayChannels(channels) {
+            channelsList.innerHTML = channels.map(channel => {
+                const initial = channel.title.charAt(0).toUpperCase();
+                const username = channel.username ? `@${channel.username}` : 'Приватный';
+                const subscribers = channel.participants_count
+                    ? `👥 ${channel.participants_count.toLocaleString()}`
+                    : '';
+
+                return `
+                    <div class="channel-item">
+                        <div class="channel-avatar">${initial}</div>
+                        <div class="channel-info">
+                            <div class="channel-title">${channel.title}</div>
+                            <div class="channel-meta">
+                                <span class="channel-username">${username}</span>
+                                ${subscribers ? `<span>${subscribers}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function disconnectAccess() {
+            if (!confirm('Вы уверены, что хотите отключить доступ к каналам?')) {
+                return;
+            }
+
+            try {
+                await apiCall('/auth/revoke', { method: 'DELETE' });
+
+                channelsSection.style.display = 'none';
+                authSection.style.display = 'block';
+                tg.showAlert('Доступ отключен');
+
+            } catch (error) {
+                // Error already shown
+            }
+        }
+
+        async function checkAuthStatus() {
+            try {
+                const status = await apiCall('/auth/status');
+
+                if (status.authorized) {
+                    await loadChannels();
+                } else {
+                    authSection.style.display = 'block';
+                }
+            } catch (error) {
+                authSection.style.display = 'block';
+            }
+        }
+
+        // Initialize
+        tg.ready();
+        checkAuthStatus();
+    </script>
+</body>
+</html>
