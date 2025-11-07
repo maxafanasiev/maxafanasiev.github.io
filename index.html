@@ -226,6 +226,9 @@
             <button id="connect-btn" class="btn">
                 📱 Подключить каналы
             </button>
+            <button id="load-channels-btn" class="btn btn-secondary" style="display: none;">
+                📋 Загрузить каналы
+            </button>
         </div>
 
         <div id="loading-section" class="loading" style="display: none;">
@@ -294,6 +297,7 @@
 
         // Elements
         const connectBtn = document.getElementById('connect-btn');
+        const loadChannelsBtn = document.getElementById('load-channels-btn');
         const refreshBtn = document.getElementById('refresh-btn');
         const disconnectBtn = document.getElementById('disconnect-btn');
         const authSection = document.getElementById('auth-section');
@@ -313,6 +317,7 @@
 
         // Event listeners
         connectBtn.addEventListener('click', startAuth);
+        loadChannelsBtn.addEventListener('click', loadChannels);
         refreshBtn.addEventListener('click', loadChannels);
         disconnectBtn.addEventListener('click', disconnectAccess);
         document.getElementById('send-code-btn').addEventListener('click', sendCode);
@@ -440,7 +445,11 @@
 
                 if (result.status === 'authorized') {
                     closeModal(codeModal);
-                    await loadChannels();
+                    // Показываем кнопку загрузки каналов вместо автоматической загрузки
+                    connectBtn.style.display = 'none';
+                    loadChannelsBtn.style.display = 'block';
+                    authSection.style.display = 'block';
+                    tg.showAlert('✅ Авторизация успешна! Теперь нажмите "Загрузить каналы"');
                 }
 
             } catch (error) {
